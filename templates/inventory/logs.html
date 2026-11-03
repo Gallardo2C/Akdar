@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Audit Logs{% endblock %}
+{% block page_heading %}Inventory Movement Audit Log{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+        <div class="fw-bold text-dark">
+            <i class="fa-solid fa-clipboard-list text-primary me-2"></i> All Inventory Transactions & Stock Logs
+            <span class="badge bg-light text-dark border ms-2">{{ logs | length }} total logs</span>
+        </div>
+        <a href="{{ url_for('inventory.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Inventory Stock
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Item Description</th>
+                    <th>Action Type</th>
+                    <th>Quantity Delta</th>
+                    <th>Audit Notes / Delivery Reference</th>
+                    <th>Recorded By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at | format_dt }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ log.item.item_name }}</div>
+                            <small class="text-muted">Code: {{ log.item.item_code }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ log.action_type }}</span>
+                        </td>
+                        <td>
+                            {% if log.quantity_change > 0 %}
+                                <span class="fw-bold text-success fs-6">+{{ log.quantity_change }}</span>
+                            {% else %}
+                                <span class="fw-bold text-danger fs-6">{{ log.quantity_change }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ log.notes }}</div>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                <i class="fa-solid fa-user me-1"></i>{{ log.performer.full_name if log.performer else 'System / Admin' }}
+                            </small>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            No inventory activity logs recorded.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

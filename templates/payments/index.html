@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Payments Ledger{% endblock %}
+{% block page_heading %}Payment Records & Transaction Ledger{% endblock %}
+
+{% block content %}
+<!-- Metrics & Filter Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card bg-emerald-light border-0 shadow-sm h-100">
+            <div class="stat-icon">
+                <i class="fa-solid fa-peso-sign"></i>
+            </div>
+            <div>
+                <div class="stat-label">Total Filtered Collections</div>
+                <div class="stat-value text-success">{{ total_collected | php }}</div>
+                <small class="text-muted">Recorded payments</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100 p-3 d-flex flex-column justify-content-center">
+            <form method="GET" action="{{ url_for('payments.index') }}" class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search receipt #, customer, reference..." value="{{ search }}">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}" placeholder="Filter date">
+                </div>
+
+                <div class="col-md-2">
+                    <select name="method" class="form-select">
+                        <option value="">All Modes</option>
+                        <option value="Cash" {% if selected_method == 'Cash' %}selected{% endif %}>Cash (In-Store/POS)</option>
+                        <option value="Cash on Delivery" {% if selected_method == 'Cash on Delivery' %}selected{% endif %}>Cash on Delivery</option>
+                        <option value="GCash" {% if selected_method == 'GCash' %}selected{% endif %}>GCash</option>
+                        <option value="Bank Transfer" {% if selected_method == 'Bank Transfer' %}selected{% endif %}>Bank / Card</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary w-100" title="Apply Filter">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <a href="{{ url_for('payments.index') }}" class="btn btn-light border" title="Reset">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+        <div class="fw-bold text-dark">
+            <i class="fa-solid fa-receipt text-success me-2"></i> Payment Transactions
+            <span class="badge bg-light text-dark border ms-2">{{ payments | length }} records</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">
+                <i class="fa-solid fa-cash-register me-1"></i> Record Payment Collection
+            </button>
+            <a href="{{ url_for('payments.receivables') }}" class="btn btn-sm btn-outline-danger">
+                <i class="fa-solid fa-hand-holding-dollar me-1"></i> View Unpaid Credit
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Payment / Receipt No.</th>
+                    <th>Customer Name</th>
+                    <th>Related Order</th>
+                    <th>Date & Time</th>
+                    <th>Payment Method</th>
+                    <th>Reference / Notes</th>
+                    <th>Amount Collected</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pay in payments %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('payments.receipt', id=pay.id) }}" class="fw-bold text-dark text-decoration-none">
+                                {{ pay.payment_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('customers.view', id=pay.customer.id) }}" class="fw-semibold text-primary text-decoration-none">
+                                {{ pay.customer.name }}
+                            </a>
+                            <div class="small text-muted">{{ pay.customer.barangay }}, Minglanilla</div>
+                        </td>
+                        <td>
+                            {% if pay.order %}
+                                <a href="{{ url_for('orders.view', id=pay.order.id) }}" class="badge bg-light text-dark border text-decoration-none">
+                                    {{ pay.order.order_number }}
+                                </a>
+                            {% else %}
+                                <span class="badge bg-light text-muted border">General Balance Settle</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ pay.payment_date | format_dt }}</td>
+                        <td>
+                            <span class="badge bg-light text-secondary border">{{ pay.payment_method }}</span>
+                        </td>
+                        <td>
+                            <div>{{ pay.notes or 'Payment recorded' }}</div>
+                            {% if pay.reference_no %}
+                                <small class="text-muted">Ref: {{ pay.reference_no }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-bold text-success fs-6">{{ pay.amount | php }}</div>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('payments.receipt', id=pay.id) }}" class="btn btn-sm btn-light border" title="Print Acknowledgement Receipt">
+                                <i class="fa-solid fa-print"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-receipt fs-3 text-secondary mb-2 d-block"></i>
+                            No payment records found.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Record Payment Collection -->
+<div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('payments.record') }}">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-cash-register me-2"></i> Record Payment Collection</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Customer <span class="text-danger">*</span></label>
+                        <select name="customer_id" class="form-select" required>
+                            <option value="" disabled selected>Select Customer...</option>
+                            {% for c in customers %}
+                                <option value="{{ c.id }}">
+                                    {{ c.name }} ({{ c.barangay }}) — Balance: ₱{{ "%.2f"|format(c.outstanding_balance) }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Amount Collected (PHP) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">₱</span>
+                            <input type="number" step="0.01" name="amount" class="form-control" min="1" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Payment Method</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="Cash at Counter">Cash at Counter</option>
+                            <option value="Cash on Delivery">Cash on Delivery (Collected by Rider)</option>
+                            <option value="GCash / Bank Transfer">GCash / Bank Transfer</option>
+                            <option value="Check">Check</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Receipt / Reference No. (Optional)</label>
+                        <input type="text" name="reference_no" class="form-control" placeholder="e.g. OR-9901 or GCash Ref">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Notes</label>
+                        <input type="text" name="notes" class="form-control" placeholder="e.g. Settlement of weekly sari-sari store credit">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        <i class="fa-solid fa-check me-1"></i> Save Payment Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

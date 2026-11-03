@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Water Refilling System</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #0b192e;
+            background-image: 
+                linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+            background-size: 28px 28px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .login-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(56, 189, 248, 0.25);
+            max-width: 440px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(180deg, #0f233f 0%, #0b192e 100%);
+            border-bottom: 2px solid #0284c7;
+            padding: 2.25rem 2rem 1.75rem;
+            color: #ffffff;
+            text-align: center;
+            position: relative;
+        }
+        .login-brand-icon {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: #ffffff;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 0.9rem;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-brand-icon">
+                <i class="fa-solid fa-bottle-water"></i>
+            </div>
+            <h4 class="fw-bold mb-1 text-white">Water Refilling System</h4>
+            <div class="small text-info text-uppercase font-mono" style="letter-spacing: 0.06em; font-size: 0.76rem;">Commercial Management & Cashier POS</div>
+        </div>
+
+        <div class="p-4 p-md-5">
+            <!-- Flash Alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show small py-2 mb-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" name="username" id="username" class="form-control" placeholder="Enter username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-secondary">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mb-4 shadow-sm">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In
+                </button>
+            </form>
+
+            <!-- Quick Demo Credential Selectors -->
+            <div class="border-top pt-3">
+                <div class="text-muted small fw-semibold mb-2 text-center text-uppercase font-mono" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    Select Role for Fast Demo
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary text-start d-flex justify-content-between align-items-center" onclick="fillCreds('cashier', 'cashier123')">
+                        <span><i class="fa-solid fa-cash-register me-2 text-primary"></i><strong>Station Cashier (POS)</strong></span>
+                        <span class="badge bg-primary font-mono">cashier</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark text-start d-flex justify-content-between align-items-center" onclick="fillCreds('admin', 'admin123')">
+                        <span><i class="fa-solid fa-user-shield me-2 text-dark"></i><strong>Station Administrator</strong></span>
+                        <span class="badge bg-dark font-mono">admin</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-start d-flex justify-content-between align-items-center" onclick="fillCreds('staff', 'staff123')">
+                        <span><i class="fa-solid fa-user-gear me-2 text-secondary"></i><strong>Station Staff</strong></span>
+                        <span class="badge bg-secondary font-mono">staff</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info text-start d-flex justify-content-between align-items-center" onclick="fillCreds('rider', 'rider123')">
+                        <span><i class="fa-solid fa-motorcycle me-2 text-info"></i><strong>Delivery Rider</strong></span>
+                        <span class="badge bg-info text-dark font-mono">rider</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fillCreds(u, p) {
+            document.getElementById('username').value = u;
+            document.getElementById('password').value = p;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

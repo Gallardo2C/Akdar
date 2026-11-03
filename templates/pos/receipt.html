@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt #{{ order.order_number }}{% endblock %}
+{% block page_heading %}Transaction Receipt{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+        <!-- Action Buttons (Hidden during Print) -->
+        <div class="d-flex align-items-center justify-content-between mb-3 no-print">
+            <a href="{{ url_for('pos.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to POS
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('orders.index') }}" class="btn btn-sm btn-light border">
+                    <i class="fa-solid fa-list me-1"></i> Transactions
+                </a>
+                <button type="button" id="printReceiptBtn" class="btn btn-sm btn-primary">
+                    <i class="fa-solid fa-print me-1"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+
+        <!-- Printable Blueprint Thermal Receipt Wrapper -->
+        <div class="receipt-wrapper">
+            <div class="receipt-header">
+                <div class="d-flex justify-content-center align-items-center mb-1">
+                    <i class="fa-solid fa-bottle-water text-primary fs-3 me-2"></i>
+                    <h5 class="mb-0 fw-bold">{{ receipt_header }}</h5>
+                </div>
+                <div style="font-size: 0.76rem;">{{ station_address }}</div>
+                <div style="font-size: 0.74rem;">Tel: {{ station_contact }}</div>
+            </div>
+
+            <div class="receipt-meta">
+                <div class="d-flex justify-content-between">
+                    <span><strong>REF NO:</strong> {{ order.order_number }}</span>
+                    <span><strong>TYPE:</strong> {{ order.order_type }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><strong>DATE:</strong> {{ order.created_at | format_dt }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><strong>CASHIER:</strong> {{ order.creator.full_name if order.creator else 'Staff' }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><strong>CUSTOMER:</strong> {{ order.display_customer_name }}</span>
+                </div>
+            </div>
+
+            <table class="receipt-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">ITEM</th>
+                        <th class="text-center" style="width: 15%;">QTY</th>
+                        <th class="text-end" style="width: 15%;">PRICE</th>
+                        <th class="text-end" style="width: 20%;">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ item.product_name }}</div>
+                        </td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end font-mono">₱{{ "%.2f"|format(item.unit_price) }}</td>
+                        <td class="text-end font-mono fw-bold">₱{{ "%.2f"|format(item.subtotal) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="receipt-totals">
+                <div class="d-flex justify-content-between">
+                    <span>Subtotal:</span>
+                    <span class="font-mono">₱{{ "%.2f"|format(order.subtotal) }}</span>
+                </div>
+                {% if order.discount and order.discount > 0 %}
+                <div class="d-flex justify-content-between text-danger">
+                    <span>Discount:</span>
+                    <span class="font-mono">-₱{{ "%.2f"|format(order.discount) }}</span>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between receipt-grand-total">
+                    <span>TOTAL AMOUNT:</span>
+                    <span class="font-mono">₱{{ "%.2f"|format(order.total_amount) }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Payment Method:</span>
+                    <span>{{ payment.payment_method if payment else 'Cash' }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Amount Tendered:</span>
+                    <span class="font-mono">₱{{ "%.2f"|format(order.amount_received or order.total_amount) }}</span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Change Given:</span>
+                    <span class="font-mono">₱{{ "%.2f"|format(order.change_given or 0.0) }}</span>
+                </div>
+            </div>
+
+            <div class="receipt-footer">
+                <p class="mb-1">{{ receipt_footer }}</p>
+                <div class="small font-mono text-muted">Official Store Receipt &bull; POS Certified</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

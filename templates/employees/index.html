@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Employee & Role Management{% endblock %}
+{% block page_heading %}Employee & User Access Control{% endblock %}
+
+{% block content %}
+<!-- Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <div class="stat-label">Total Staff & Users</div>
+                <div class="stat-value">{{ total_users }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-emerald">
+                <i class="fa-solid fa-cash-register"></i>
+            </div>
+            <div>
+                <div class="stat-label">Station Cashiers</div>
+                <div class="stat-value text-primary">{{ cashier_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="stat-label">System Admins</div>
+                <div class="stat-value text-dark">{{ admin_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div>
+                <div class="stat-label">Active Accounts</div>
+                <div class="stat-value text-success">{{ active_users }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <form method="GET" action="{{ url_for('employees.index') }}" class="d-flex flex-wrap align-items-center gap-2">
+                <div class="input-group input-group-sm" style="min-width: 220px;">
+                    <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Search staff name or username..." value="{{ search }}">
+                </div>
+
+                <select name="role" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
+                    <option value="all" {% if selected_role == 'all' %}selected{% endif %}>All Roles</option>
+                    <option value="admin" {% if selected_role == 'admin' %}selected{% endif %}>Administrator</option>
+                    <option value="cashier" {% if selected_role == 'cashier' %}selected{% endif %}>Cashier (POS)</option>
+                    <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Station Staff</option>
+                    <option value="rider" {% if selected_role == 'rider' %}selected{% endif %}>Delivery Rider</option>
+                </select>
+
+                <button type="submit" class="btn btn-sm btn-light border">Filter</button>
+                {% if search or selected_role != 'all' %}
+                <a href="{{ url_for('employees.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                {% endif %}
+            </form>
+
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                <i class="fa-solid fa-user-plus me-1"></i> Add New Employee
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Employees Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+        <div class="fw-bold text-dark">
+            <i class="fa-solid fa-address-card text-primary me-2"></i> Station Personnel & Accounts
+        </div>
+        <span class="badge bg-light text-secondary border font-mono">{{ users | length }} accounts</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Username</th>
+                    <th>Role & Permissions</th>
+                    <th>Contact Phone</th>
+                    <th>Status</th>
+                    <th>Date Added</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 font-mono" style="width: 34px; height: 34px; font-weight: 700;">
+                                {{ u.full_name[0] }}
+                            </div>
+                            <div>
+                                <div class="fw-semibold text-dark">{{ u.full_name }}</div>
+                                {% if u.id == current_user.id %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-mono" style="font-size: 0.65rem;">You (Active Session)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="font-mono text-muted">@{{ u.username }}</td>
+                    <td>
+                        {% if u.role == 'admin' %}
+                            <span class="badge bg-dark text-white border font-mono">
+                                <i class="fa-solid fa-shield-halved me-1 text-warning"></i> Administrator
+                            </span>
+                        {% elif u.role == 'cashier' %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-mono">
+                                <i class="fa-solid fa-cash-register me-1"></i> Cashier (POS)
+                            </span>
+                        {% elif u.role == 'rider' %}
+                            <span class="badge bg-info-subtle text-info border border-info-subtle font-mono">
+                                <i class="fa-solid fa-motorcycle me-1"></i> Delivery Rider
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border font-mono">
+                                <i class="fa-solid fa-user-gear me-1"></i> Station Staff
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="font-mono">{{ u.phone or '—' }}</td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle font-mono">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-mono">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted font-mono">{{ u.created_at | format_d }}</td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ u.id }}" title="Edit Details">
+                                <i class="fa-solid fa-user-pen"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ u.id }}" title="Reset Password">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Edit User Modal -->
+                <div class="modal fade" id="editUserModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-navy text-white" style="background-color: #0b192e;">
+                                <h5 class="modal-title fs-6 fw-bold">
+                                    <i class="fa-solid fa-user-pen text-info me-2"></i> Edit Account: {{ u.full_name }}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('employees.edit', id=u.id) }}">
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Username</label>
+                                        <input type="text" class="form-control font-mono" value="{{ u.username }}" disabled readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Full Name *</label>
+                                        <input type="text" name="full_name" class="form-control" value="{{ u.full_name }}" required>
+                                    </div>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-semibold">Role *</label>
+                                            <select name="role" class="form-select">
+                                                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Administrator</option>
+                                                <option value="cashier" {% if u.role == 'cashier' %}selected{% endif %}>Cashier (POS)</option>
+                                                <option value="staff" {% if u.role == 'staff' %}selected{% endif %}>Station Staff</option>
+                                                <option value="rider" {% if u.role == 'rider' %}selected{% endif %}>Delivery Rider</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-semibold">Phone Number</label>
+                                            <input type="text" name="phone" class="form-control" value="{{ u.phone or '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="form-check border-top pt-3">
+                                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="userActive{{ u.id }}" {% if u.is_active %}checked{% endif %}>
+                                        <label class="form-check-label small" for="userActive{{ u.id }}">
+                                            Active Account (Can log into system)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="fa-solid fa-save me-1"></i> Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reset Password Modal -->
+                <div class="modal fade" id="resetPasswordModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-warning text-dark py-3">
+                                <h5 class="modal-title fs-6 fw-bold">
+                                    <i class="fa-solid fa-key me-2"></i> Reset Password: @{{ u.username }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('employees.reset_password', id=u.id) }}">
+                                <div class="modal-body p-4">
+                                    <p class="small text-muted mb-3">
+                                        Enter a new password for <strong>{{ u.full_name }}</strong> (@{{ u.username }}).
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">New Password *</label>
+                                        <input type="password" name="new_password" class="form-control" required placeholder="Minimum 4 characters">
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        <i class="fa-solid fa-rotate me-1"></i> Update Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Add New Employee -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-navy text-white" style="background-color: #0b192e;">
+                <h5 class="modal-title fs-6 fw-bold">
+                    <i class="fa-solid fa-user-plus text-info me-2"></i> Add New Employee / User Account
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('employees.create') }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Username *</label>
+                        <input type="text" name="username" class="form-control font-mono" placeholder="e.g. cashier2, staff_anna" required>
+                        <small class="text-muted">Unique login handle</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Full Legal / Display Name *</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="e.g. Anna Marie Reyes" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Assigned Role *</label>
+                            <select name="role" class="form-select">
+                                <option value="cashier" selected>Cashier (POS & Counter)</option>
+                                <option value="staff">Station Staff (Refills & Ops)</option>
+                                <option value="rider">Delivery Rider (Logistics)</option>
+                                <option value="admin">Administrator (Full Access)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Phone Number</label>
+                            <input type="text" name="phone" class="form-control" placeholder="e.g. 0917-000-1122">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Initial Password *</label>
+                        <input type="password" name="password" class="form-control" placeholder="Initial temporary password" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="fa-solid fa-save me-1"></i> Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

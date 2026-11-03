@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_heading %}User Profile Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                <i class="fa-solid fa-id-card text-primary me-2 fs-5"></i>
+                <h6 class="mb-0 fw-bold">Account Profile & Security</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Username</label>
+                            <input type="text" class="form-control bg-light" value="{{ user.username }}" readonly disabled>
+                            <div class="form-text small">Usernames cannot be changed.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">System Role</label>
+                            <input type="text" class="form-control bg-light text-uppercase fw-semibold" value="{{ user.role }}" readonly disabled>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Contact Phone</label>
+                            <input type="text" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="09XX-XXX-XXXX">
+                        </div>
+
+                        <hr class="my-4 text-muted">
+
+                        <h6 class="fw-bold text-dark mb-2">Change Password</h6>
+                        <p class="text-muted small">Leave blank if you do not wish to update your password.</p>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Current Password</label>
+                            <input type="password" name="current_password" class="form-control" placeholder="Required to set new password">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">New Password</label>
+                            <input type="password" name="new_password" class="form-control" placeholder="Minimum 6 characters">
+                        </div>
+
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fa-solid fa-floppy-disk me-2"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

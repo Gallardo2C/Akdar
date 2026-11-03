@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Slip - {{ order.order_number }} - Water Refilling System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        body {
+            background-color: #f1f5f9;
+            padding: 2rem 1rem;
+        }
+        .receipt-card {
+            background-color: #ffffff;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+            }
+            .receipt-card {
+                box-shadow: none !important;
+                border: 1px solid #000000 !important;
+                max-width: 100% !important;
+                padding: 1.5rem !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Control Bar -->
+    <div class="no-print max-w-680 mx-auto mb-4 text-center" style="max-width: 680px;">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('orders.view', id=order.id) }}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Order
+            </a>
+            <button onclick="window.print()" class="btn btn-primary px-4 shadow-sm">
+                <i class="fa-solid fa-print me-2"></i> Print Delivery Slip
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Printable Delivery Slip -->
+    <div class="receipt-card printable-receipt">
+        <!-- Header -->
+        <div class="text-center pb-3 border-bottom mb-3">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                <i class="fa-solid fa-bottle-water text-primary fs-3"></i>
+                <h4 class="fw-bold mb-0 text-dark">{{ station_name }}</h4>
+            </div>
+            <div class="small text-muted">{{ station_subtitle }}</div>
+            <div class="small text-muted">{{ station_address }} &bull; {{ station_contact }}</div>
+        </div>
+
+        <!-- Receipt Title -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-uppercase fw-bold text-primary small letter-spacing-1 font-mono">Official Delivery Slip</span>
+                <h5 class="fw-bold mb-0 text-dark font-mono">{{ order.order_number }}</h5>
+            </div>
+            <div class="text-end">
+                <div class="small text-muted">Delivery Date:</div>
+                <div class="fw-bold text-dark font-mono">{{ order.delivery_date | format_d }}</div>
+                <div class="small text-muted">{{ order.delivery_time_slot.split('(')[0] }}</div>
+            </div>
+        </div>
+
+        <!-- Customer & Destination Info -->
+        <div class="bg-light p-3 rounded-2 mb-3 border">
+            <div class="row g-2">
+                <div class="col-7">
+                    <div class="small text-muted text-uppercase fw-semibold font-mono" style="font-size: 0.72rem;">Customer Details</div>
+                    <div class="fw-bold text-dark fs-6">{{ order.display_customer_name }}</div>
+                    <div class="small text-dark">{{ order.delivery_address }}</div>
+                    <div class="small text-primary fw-semibold">{{ order.barangay }}, Minglanilla, Cebu</div>
+                    <div class="small text-muted"><i class="fa-solid fa-phone me-1"></i>{{ order.contact_number }}</div>
+                </div>
+                <div class="col-5 border-start ps-3">
+                    <div class="small text-muted text-uppercase fw-semibold font-mono" style="font-size: 0.72rem;">Delivery Rider</div>
+                    <div class="fw-bold text-dark">{{ order.rider.full_name if order.rider else 'Station Dispatch' }}</div>
+                    {% if order.delivery_notes %}
+                        <div class="small text-muted mt-2">
+                            <strong>Note:</strong> {{ order.delivery_notes }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items Table -->
+        <table class="table table-bordered align-middle mb-3" style="font-size: 0.88rem;">
+            <thead class="table-light">
+                <tr>
+                    <th>Item Description</th>
+                    <th class="text-center" style="width: 15%;">Qty</th>
+                    <th class="text-end" style="width: 20%;">Price</th>
+                    <th class="text-end" style="width: 25%;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ item.product_name }}</div>
+                        </td>
+                        <td class="text-center font-mono">{{ item.quantity }}</td>
+                        <td class="text-end font-mono">{{ item.unit_price | php }}</td>
+                        <td class="text-end font-mono fw-bold">{{ item.subtotal | php }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Total Amount Due:</td>
+                    <td class="text-end fw-bold text-primary font-mono fs-6">{{ order.total_amount | php }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end text-muted small">Amount Collected / Paid:</td>
+                    <td class="text-end font-mono small">{{ order.amount_paid | php }}</td>
+                </tr>
+                {% if order.balance_due > 0 %}
+                    <tr class="table-warning">
+                        <td colspan="3" class="text-end fw-bold text-danger">Remaining Customer Credit:</td>
+                        <td class="text-end fw-bold text-danger font-mono">{{ order.balance_due | php }}</td>
+                    </tr>
+                {% endif %}
+            </tfoot>
+        </table>
+
+        <!-- Gallon Accountability Verification Strip -->
+        <div class="border rounded p-3 mb-4 bg-light">
+            <h6 class="fw-bold text-dark small text-uppercase font-mono mb-2">Gallon Exchange Accountability</h6>
+            <div class="row text-center g-2 font-mono small">
+                <div class="col-4 border-end">
+                    <div class="text-muted">Delivered to Customer</div>
+                    <div class="h5 mb-0 fw-bold text-primary">{{ order.containers_delivered }}</div>
+                </div>
+                <div class="col-4 border-end">
+                    <div class="text-muted">Empty Gallons Retrieved</div>
+                    <div class="h5 mb-0 fw-bold text-success">{{ order.empty_containers_returned }}</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-muted">Net Gallon Balance Delta</div>
+                    <div class="h5 mb-0 fw-bold {% if order.gallon_net_change > 0 %}text-warning{% else %}text-secondary{% endif %}">
+                        {{ order.gallon_net_change }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer & Rider Signatures -->
+        <div class="row mt-4 pt-3 border-top text-center text-muted small">
+            <div class="col-6">
+                <div style="height: 40px;"></div>
+                <div class="border-top pt-1 mx-3">Customer Signature over Printed Name</div>
+            </div>
+            <div class="col-6">
+                <div style="height: 40px;"></div>
+                <div class="border-top pt-1 mx-3">Delivery Personnel / Authorized Staff</div>
+            </div>
+        </div>
+
+        <div class="text-center text-muted small mt-4 pt-2">
+            <em>Thank you for trusting {{ station_name }}! Clean, pure, and safe water delivered to your doorstep.</em>
+        </div>
+    </div>
+
+</body>
+</html>

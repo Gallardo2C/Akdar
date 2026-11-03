@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.order_number }}{% endblock %}
+{% block page_heading %}Delivery Order Details{% endblock %}
+
+{% block content %}
+<!-- Top Header Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h4 class="fw-bold mb-0 text-dark">{{ order.order_number }}</h4>
+                    {% if order.delivery_status == 'Pending' %}
+                        <span class="badge-status badge-pending"><i class="fa-regular fa-clock"></i> Pending Dispatch</span>
+                    {% elif order.delivery_status == 'Dispatched' %}
+                        <span class="badge-status badge-dispatched"><i class="fa-solid fa-truck"></i> Out for Delivery</span>
+                    {% elif order.delivery_status == 'Delivered' %}
+                        <span class="badge-status badge-delivered"><i class="fa-solid fa-circle-check"></i> Delivered</span>
+                    {% else %}
+                        <span class="badge-status badge-cancelled"><i class="fa-solid fa-circle-xmark"></i> Cancelled</span>
+                    {% endif %}
+
+                    {% if order.payment_status == 'Paid' %}
+                        <span class="badge-status badge-paid"><i class="fa-solid fa-check-double"></i> Paid</span>
+                    {% elif order.payment_status == 'Partial' %}
+                        <span class="badge-status badge-partial">Partial</span>
+                    {% else %}
+                        <span class="badge-status badge-unpaid"><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
+                    {% endif %}
+                </div>
+                <div class="text-muted small">
+                    Created on {{ order.created_at | format_dt }}
+                    {% if order.creator %}&bull; Recorded by: <strong>{{ order.creator.full_name }}</strong>{% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('orders.receipt', id=order.id) }}" class="btn btn-outline-primary" target="_blank">
+                    <i class="fa-solid fa-print me-1"></i> Print Delivery Slip
+                </a>
+
+                {% if order.delivery_status == 'Pending' %}
+                    <button type="button" class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#dispatchModal">
+                        <i class="fa-solid fa-motorcycle me-1"></i> Dispatch / Out for Delivery
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                        <i class="fa-solid fa-xmark me-1"></i> Cancel Order
+                    </button>
+                {% elif order.delivery_status == 'Dispatched' %}
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#deliverModal">
+                        <i class="fa-solid fa-check-double me-1"></i> Mark Delivered & Collect
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                        <i class="fa-solid fa-xmark me-1"></i> Cancel
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Customer & Delivery Information -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-location-dot text-danger me-2"></i> Destination & Customer Details
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <div class="text-muted small fw-semibold text-uppercase">Customer Name</div>
+                    <div class="fw-bold text-dark fs-5">
+                        <a href="{{ url_for('customers.view', id=order.customer.id) }}" class="text-dark text-decoration-none">
+                            {{ order.customer.name }} &rarr;
+                        </a>
+                    </div>
+                    <span class="badge bg-light text-secondary border">{{ order.customer.customer_type }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <div class="text-muted small fw-semibold text-uppercase">Contact Phone</div>
+                    <div class="fw-semibold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i>{{ order.contact_number }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="text-muted small fw-semibold text-uppercase">Delivery Address</div>
+                    <div class="fw-semibold text-dark">{{ order.delivery_address }}</div>
+                    <div class="text-primary fw-bold small"><i class="fa-solid fa-city me-1"></i>{{ order.barangay }}, Minglanilla, Cebu</div>
+                </div>
+
+                {% if order.delivery_notes %}
+                    <div class="mb-3">
+                        <div class="text-muted small fw-semibold text-uppercase">Landmark / Instructions</div>
+                        <div class="alert alert-warning py-2 px-3 small mb-0">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ order.delivery_notes }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <hr class="my-3 text-muted">
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="text-muted small fw-semibold text-uppercase">Delivery Date</div>
+                        <div class="fw-bold text-dark">{{ order.delivery_date | format_d }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted small fw-semibold text-uppercase">Time Slot</div>
+                        <div class="fw-bold text-dark">{{ order.delivery_time_slot.split('(')[0] }}</div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="text-muted small fw-semibold text-uppercase">Assigned Delivery Personnel</div>
+                    {% if order.rider %}
+                        <div class="d-flex align-items-center mt-1">
+                            <div class="avatar bg-info text-dark rounded-circle p-2 me-2">
+                                <i class="fa-solid fa-motorcycle"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">{{ order.rider.full_name }}</div>
+                                <small class="text-muted">Staff / Delivery Rider ({{ order.rider.phone or 'Active' }})</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-muted small italic">Not yet assigned to a delivery rider.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Container Exchange Tracking Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-boxes-stacked text-primary me-2"></i> Container Exchange Tracking
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="row g-2 align-items-center">
+                    <div class="col-5">
+                        <div class="text-muted small fw-semibold text-uppercase">Full Delivered</div>
+                        <div class="h3 fw-bold text-primary mb-0">
+                            <i class="fa-solid fa-arrow-down me-1"></i> {{ order.containers_delivered }}
+                        </div>
+                        <small class="text-muted">gallons given</small>
+                    </div>
+
+                    <div class="col-2">
+                        <i class="fa-solid fa-right-left text-muted fs-4"></i>
+                    </div>
+
+                    <div class="col-5">
+                        <div class="text-muted small fw-semibold text-uppercase">Empty Retrieved</div>
+                        <div class="h3 fw-bold text-success mb-0">
+                            <i class="fa-solid fa-arrow-up me-1"></i> {{ order.empty_containers_returned }}
+                        </div>
+                        <small class="text-muted">empty collected</small>
+                    </div>
+                </div>
+
+                <hr class="my-3 text-muted">
+                <div class="small text-muted">
+                    Net container liability change for customer: 
+                    <strong>{{ order.gallon_net_change }} gallon(s)</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Line Items & Payment Status -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-list-check text-primary me-2"></i> Order Items & Pricing
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Item / Description</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ item.product_name }}</div>
+                                        <small class="text-muted">{{ item.product.category if item.product else 'Water Product' }}</small>
+                                    </td>
+                                    <td class="text-center fw-bold">{{ item.quantity }}</td>
+                                    <td class="text-end text-muted">{{ item.unit_price | php }}</td>
+                                    <td class="text-end fw-bold text-dark">{{ item.subtotal | php }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="3" class="text-end">Total Order Amount:</th>
+                                <th class="text-end fw-bold fs-5 text-dark">{{ order.total_amount | php }}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-end text-success">Amount Paid / Collected:</th>
+                                <th class="text-end fw-bold text-success">{{ order.amount_paid | php }}</th>
+                            </tr>
+                            {% if order.balance_due > 0 %}
+                                <tr>
+                                    <th colspan="3" class="text-end text-danger">Remaining Balance Due (Credit):</th>
+                                    <th class="text-end fw-bold text-danger">{{ order.balance_due | php }}</th>
+                                </tr>
+                            {% endif %}
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History for this Order -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-receipt text-success me-2"></i> Payment Records
+            </div>
+            <div class="card-body p-0">
+                {% if order.payments %}
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Receipt No.</th>
+                                    <th>Date</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                    <th>Received By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pay in order.payments %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('payments.receipt', id=pay.id) }}" class="fw-bold text-dark text-decoration-none">
+                                                {{ pay.payment_number }}
+                                            </a>
+                                        </td>
+                                        <td>{{ pay.payment_date | format_dt }}</td>
+                                        <td><span class="badge bg-light text-dark border">{{ pay.payment_method }}</span></td>
+                                        <td class="fw-bold text-success">{{ pay.amount | php }}</td>
+                                        <td>{{ pay.receiver.full_name if pay.receiver else 'Staff' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fa-solid fa-hand-holding-dollar fs-3 text-secondary mb-2 d-block"></i>
+                        No payment recorded yet for this order. 
+                        {% if order.delivery_status == 'Dispatched' %}
+                            Click "Mark Delivered & Collect" to record COD payment upon completion.
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Dispatch Order -->
+<div class="modal fade" id="dispatchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('orders.update_status', id=order.id) }}">
+                <input type="hidden" name="delivery_status" value="Dispatched">
+                <div class="modal-header bg-info text-dark">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-truck-fast me-2"></i> Dispatch Delivery Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted">
+                        Dispatching moves this order to <strong>Out for Delivery</strong> and automatically deducts the filled water containers from the refilling station stock.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Assign Delivery Rider</label>
+                        <select name="assigned_staff_id" class="form-select" required>
+                            {% for r in riders %}
+                                <option value="{{ r.id }}" {% if order.assigned_staff_id == r.id %}selected{% endif %}>
+                                    {{ r.full_name }} ({{ r.role }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="alert alert-light border small">
+                        <strong>Order Summary:</strong><br>
+                        Customer: {{ order.customer.name }} ({{ order.barangay }})<br>
+                        Containers: {{ order.containers_delivered }} full bottles<br>
+                        Total to collect: <strong>{{ order.total_amount | php }}</strong>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info text-dark fw-semibold">
+                        <i class="fa-solid fa-motorcycle me-1"></i> Confirm Dispatch
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Mark Delivered & Collect Payment -->
+<div class="modal fade" id="deliverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('orders.update_status', id=order.id) }}">
+                <input type="hidden" name="delivery_status" value="Delivered">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-circle-check me-2"></i> Complete Delivery & Settle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <h6 class="fw-bold text-dark border-bottom pb-2">1. Container Retrieval</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">
+                            Empty Containers Returned by Customer
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fa-solid fa-bottle-water"></i></span>
+                            <input type="number" name="empty_containers_returned" class="form-control" min="0" max="50" value="{{ order.containers_delivered }}" required>
+                        </div>
+                        <div class="form-text small">
+                            Full delivered: {{ order.containers_delivered }}. Empty returned will be added to station's empty stock.
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mt-4">2. Payment Settlement</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Payment Settlement Option</label>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_option" id="payFull" value="cash_full" checked onchange="togglePartial(false)">
+                                <label class="form-check-label fw-semibold" for="payFull">
+                                    Cash on Delivery in Full ({{ order.total_amount | php }})
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_option" id="payCredit" value="credit" onchange="togglePartial(false)">
+                                <label class="form-check-label fw-semibold text-danger" for="payCredit">
+                                    Charge to Customer Credit (Unpaid / Payable later)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_option" id="payPartial" value="partial" onchange="togglePartial(true)">
+                                <label class="form-check-label fw-semibold text-warning text-dark" for="payPartial">
+                                    Partial Payment
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="partialAmountDiv" class="mb-3 d-none">
+                        <label class="form-label small fw-semibold text-secondary">Amount Collected (PHP)</label>
+                        <input type="number" step="0.01" name="amount_collected" class="form-control" value="0.00" min="0" max="{{ order.total_amount }}">
+                        <div class="form-text small">Balance will be charged to customer's account.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Payment Method</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="Cash on Delivery">Cash on Delivery (Collected by Rider)</option>
+                            <option value="Cash at Counter">Cash at Counter</option>
+                            <option value="GCash / Bank Transfer">GCash / Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Receipt Reference (Optional)</label>
+                        <input type="text" name="payment_reference" class="form-control" placeholder="e.g. OR-8891">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        <i class="fa-solid fa-check-double me-1"></i> Save & Mark Delivered
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cancel Order -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('orders.update_status', id=order.id) }}">
+                <input type="hidden" name="delivery_status" value="Cancelled">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Cancel Order</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p>Are you sure you want to cancel Order <strong>{{ order.order_number }}</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Keep Order</button>
+                    <button type="submit" class="btn btn-danger">Yes, Cancel Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePartial(show) {
+        const div = document.getElementById('partialAmountDiv');
+        if (show) {
+            div.classList.remove('d-none');
+        } else {
+            div.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

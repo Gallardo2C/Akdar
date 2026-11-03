@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Gallon Accountability Audit{% endblock %}
+{% block page_heading %}Gallon Container Accountability & Asset Audit{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card bg-sky-light border-0 shadow-sm h-100">
+            <div class="stat-icon">
+                <i class="fa-solid fa-bottle-water"></i>
+            </div>
+            <div>
+                <div class="stat-label">Total Gallons in Custody of Customers</div>
+                <div class="stat-value text-primary">{{ total_gallons_with_customers }}</div>
+                <div class="small text-muted">Across {{ customers_with_gallons | length }} accounts in Minglanilla</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100 p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-scale-balanced text-primary me-2"></i> Station Container Asset Balance Equation
+            </h6>
+            <p class="small text-muted mb-2">
+                In computerized water refilling station management, all physical containers purchased by the station must be accounted for at any given time without discrepancy:
+            </p>
+            <div class="p-2 bg-light rounded text-center small fw-semibold text-secondary border">
+                Total Station Containers = [ Filled Stock ] + [ Empty Stock in Station ] + [ Loaned to Customers ] + [ Damaged / Condemned ]
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container Fleet Ledger Table -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 fw-bold text-dark">
+        <i class="fa-solid fa-boxes-stacked text-primary me-2"></i> Container Asset Balance Summary
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Container Type</th>
+                    <th class="text-center">Filled in Station</th>
+                    <th class="text-center">Empty in Station</th>
+                    <th class="text-center">Loaned with Customers</th>
+                    <th class="text-center">Damaged / Retired</th>
+                    <th class="text-end">Total Accounted Bottles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in containers %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ c.item_name }}</div>
+                            <small class="text-muted">Code: {{ c.item_code }}</small>
+                        </td>
+                        <td class="text-center fw-bold text-primary">{{ c.filled_stock }}</td>
+                        <td class="text-center fw-bold text-warning">{{ c.empty_stock }}</td>
+                        <td class="text-center fw-bold text-info">{{ c.loaned_stock }}</td>
+                        <td class="text-center fw-bold text-danger">{{ c.damaged_stock }}</td>
+                        <td class="text-end fw-bold text-dark fs-6">{{ c.total_containers_owned }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Customers Currently Holding Gallons -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+        <div class="fw-bold text-dark">
+            <i class="fa-solid fa-users text-primary me-2"></i> Customers with Station Gallons on Hand
+            <span class="badge bg-primary ms-2">{{ customers_with_gallons | length }} Customers</span>
+        </div>
+        <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Sales Reports
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Type</th>
+                    <th>Barangay (Minglanilla)</th>
+                    <th>Contact Phone</th>
+                    <th>Containers Held</th>
+                    <th>Estimated Bottle Liability Value</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cust in customers_with_gallons %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('customers.view', id=cust.id) }}" class="fw-bold text-dark text-decoration-none">
+                                {{ cust.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-secondary border">{{ cust.customer_type.split('/')[0].strip() }}</span>
+                        </td>
+                        <td>
+                            <div>{{ cust.purok_street }}</div>
+                            <small class="text-primary fw-semibold">{{ cust.barangay }}</small>
+                        </td>
+                        <td>{{ cust.contact_number }}</td>
+                        <td>
+                            <span class="badge bg-info text-dark fs-6">
+                                <i class="fa-solid fa-bottle-water me-1"></i> {{ cust.gallons_on_hand }} gal
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-muted">
+                                ₱{{ "%.2f"|format(cust.gallons_on_hand * 220.00) }}
+                            </span>
+                            <small class="text-muted d-block">(based on ₱220 bottle replacement cost)</small>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('customers.view', id=cust.id) }}" class="btn btn-sm btn-light border" title="View Gallon History">
+                                <i class="fa-solid fa-eye me-1"></i> Ledger
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            No customers currently hold loaned gallons.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

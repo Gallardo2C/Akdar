@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{% if customer %}Edit Customer{% else %}Register Customer{% endif %}{% endblock %}
+{% block page_heading %}{% if customer %}Edit Customer Profile{% else %}Register New Customer{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <div class="fw-bold text-dark">
+                    <i class="fa-solid fa-user-tag text-primary me-2"></i>
+                    {% if customer %}Update {{ customer.name }}{% else %}New Customer Registration Form{% endif %}
+                </div>
+                <a href="{{ url_for('customers.index') }}" class="btn btn-sm btn-light border">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Customers
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold text-secondary">Customer / Store Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Aling Nena's Store or Juan Dela Cruz" value="{{ customer.name if customer else '' }}" required autofocus>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Customer Type <span class="text-danger">*</span></label>
+                            <select name="customer_type" class="form-select" required>
+                                {% set ctype = customer.customer_type if customer else 'Household' %}
+                                <option value="Household" {% if ctype == 'Household' %}selected{% endif %}>Household</option>
+                                <option value="Commercial / Sari-sari Store" {% if ctype == 'Commercial / Sari-sari Store' %}selected{% endif %}>Commercial / Sari-sari Store</option>
+                                <option value="Commercial / Eatery" {% if ctype == 'Commercial / Eatery' %}selected{% endif %}>Commercial / Eatery</option>
+                                <option value="Office / Business" {% if ctype == 'Office / Business' %}selected{% endif %}>Office / Business</option>
+                                <option value="Institution / School" {% if ctype == 'Institution / School' %}selected{% endif %}>Institution / School</option>
+                                <option value="Walk-in" {% if ctype == 'Walk-in' %}selected{% endif %}>Walk-in Customer</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Contact Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-phone"></i></span>
+                                <input type="text" name="contact_number" class="form-control" placeholder="0917-123-4567" value="{{ customer.contact_number if customer else '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-secondary">Barangay (Minglanilla, Cebu) <span class="text-danger">*</span></label>
+                            <select name="barangay" class="form-select" required>
+                                <option value="" disabled {% if not customer %}selected{% endif %}>Select Minglanilla Barangay</option>
+                                {% for bgy in barangays %}
+                                    <option value="{{ bgy }}" {% if customer and customer.barangay == bgy %}selected{% endif %}>{{ bgy }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary">Purok / Street / Subdivision / Building <span class="text-danger">*</span></label>
+                            <input type="text" name="purok_street" class="form-control" placeholder="e.g. Purok Rosas, Phase 2 Deca Homes, Bonifacio St." value="{{ customer.purok_street if customer else '' }}" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary">Landmarks & Delivery Instructions</label>
+                            <input type="text" name="landmark_notes" class="form-control" placeholder="e.g. Near yellow chapel, green gate with sticker, beside bakery" value="{{ customer.landmark_notes if customer else '' }}">
+                        </div>
+
+                        {% if not customer %}
+                            <div class="col-12"><hr class="my-3 text-muted"></div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Initial Loaned Gallons (Optional)</label>
+                                <input type="number" name="initial_gallons" class="form-control" min="0" value="0">
+                                <div class="form-text small">Bottles the customer already holds prior to system adoption.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Existing Credit / Unpaid Balance (PHP)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted">₱</span>
+                                    <input type="number" step="0.01" name="initial_balance" class="form-control" min="0" value="0.00">
+                                </div>
+                                <div class="form-text small">Any carryover receivables from previous manual records.</div>
+                            </div>
+                        {% elif session.get('user_role') == 'admin' %}
+                            <div class="col-12"><hr class="my-3 text-muted"></div>
+                            <div class="col-12">
+                                <div class="alert alert-info py-2 small mb-3">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> <strong>Admin Override:</strong> You can adjust container count and outstanding receivables directly for audit reconciliation.
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Containers Loaned to Customer</label>
+                                <input type="number" name="gallons_on_hand" class="form-control" min="0" value="{{ customer.gallons_on_hand }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Outstanding Receivables (PHP)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted">₱</span>
+                                    <input type="number" step="0.01" name="outstanding_balance" class="form-control" min="0" value="{{ customer.outstanding_balance }}">
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fa-solid fa-floppy-disk me-2"></i> {% if customer %}Save Profile Updates{% else %}Save & Register Customer{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}System Architecture & Operational Specifications{% endblock %}
+{% block page_heading %}System Specifications & Operational Standards{% endblock %}
+
+{% block content %}
+<!-- Header Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="badge bg-primary text-uppercase px-3 py-2 mb-2 font-mono" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                    System Specifications &bull; Water Refilling System
+                </span>
+                <h3 class="fw-bold text-dark mb-1">Water Refilling System</h3>
+                <div class="text-secondary">
+                    <strong>Commercial Management & Point of Sale System</strong>
+                </div>
+                <div class="small text-muted mt-1">
+                    <i class="fa-solid fa-location-dot text-danger me-1"></i> Designed for Commercial In-Store Operations & Delivery Logistics in <strong>Minglanilla, Cebu, Philippines</strong>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-gauge-high me-1"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Software Compliance & Deliverable 1 Alignment Matrix -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 fw-bold text-dark d-flex align-items-center justify-content-between">
+        <div>
+            <i class="fa-solid fa-list-check text-success me-2"></i> Deliverable 1 Objectives & Software Compliance Matrix
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle">
+            <i class="fa-solid fa-check-double me-1"></i> Fully Implemented
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 25%;">Specific Objective (Deliverable 1)</th>
+                    <th style="width: 35%;">Software Feature / Module Implemented</th>
+                    <th style="width: 25%;">Operational Impact for Minglanilla Station</th>
+                    <th style="width: 15%;" class="text-center">System Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-bold text-dark">
+                        1. Determine the feasibility of implementing a computerized Water Delivery Management System.
+                    </td>
+                    <td>
+                        Centralized web-based architecture (Flask + SQLite + Responsive Bootstrap 5 UI) running locally in station with zero external cloud dependencies.
+                    </td>
+                    <td>
+                        Feasible and practical for small-to-medium water refilling stations in Minglanilla with simple PC or tablet access.
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Verified</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-bold text-dark">
+                        2. Identify & develop system requirements based on stakeholder needs.
+                    </td>
+                    <td>
+                        Customer management, delivery scheduling, COD/credit payment recording, container return tracking, and inventory logs.
+                    </td>
+                    <td>
+                        Eliminates manual paper logbooks and misplaced delivery receipts.
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Verified</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-bold text-dark">
+                        3. Design & develop a Water Delivery Management System.
+                    </td>
+                    <td>
+                        Comprehensive CRUD modules: Customers, Orders, Payments, Containers (Round & Slim), and Supplies (Caps & Seals).
+                    </td>
+                    <td>
+                        Provides real-time dispatch board and instant status visibility across daily operations.
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Verified</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-bold text-dark">
+                        4. Develop strategies for maintaining and managing software and records.
+                    </td>
+                    <td>
+                        Detailed audit trail (`InventoryLog`), CSV sales export for Excel, and printable official receipts / delivery slips.
+                    </td>
+                    <td>
+                        Enables station owner to audit container assets, reconcile unpaid credits, and backup operational records.
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Verified</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-bold text-dark">
+                        5. Verify that the system complies with requirements through testing and evaluation.
+                    </td>
+                    <td>
+                        Complete end-to-end integration: Order Creation &rarr; Stock Dispatch &rarr; Delivery & Container Return &rarr; Payment Settlement.
+                    </td>
+                    <td>
+                        Ensures container count and customer account balances reconcile accurately.
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Verified</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Complete Deliverable No. 1 Research Documentation -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-book text-primary me-2"></i> Deliverable No. 1 Full Text & Specification
+            </div>
+            <div class="card-body p-4 text-dark" style="line-height: 1.7;">
+                <h5 class="fw-bold text-primary mb-3">1. The Problem and Its Background</h5>
+                <p>
+                    Access to clean and safe drinking water is an essential part of everyday life, making water refilling stations an important service in many communities in the Philippines. As the demand for purified water continues to grow, many water refilling stations also expand their services by offering home and business deliveries. While these businesses provide convenience to customers, many of them still rely on manual processes for recording orders, scheduling deliveries, monitoring payments, and tracking inventory. These traditional methods often result in delayed deliveries, misplaced records, and inefficient daily operations.
+                </p>
+                <p>
+                    The increasing use of information technology has encouraged businesses to adopt computerized systems that simplify routine tasks and improve the accuracy of business transactions. Web-based management systems have become practical solutions for small and medium-sized enterprises because they provide centralized access to business records and help organize operations in real time. By replacing manual record-keeping with digital processes, businesses can improve productivity, reduce human errors, and provide better customer service.
+                </p>
+                <p>
+                    This study focuses on the development of a <strong>Water Delivery Management System</strong> for a selected water refilling station in <strong>Minglanilla, Cebu</strong>. The project aims to provide a centralized platform for managing customer information, delivery transactions, payment records, and inventory monitoring. Through this project, the researchers intend to improve the efficiency of daily operations and provide a more organized way of handling water delivery services.
+                </p>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="fw-bold text-primary mb-3">1.1 Rationale</h5>
+                <p>
+                    A Water Delivery Management System is generally defined as a computerized information system that manages and coordinates water delivery operations, including customer records, order processing, delivery scheduling, payment monitoring, and inventory management. Such systems help businesses automate repetitive administrative tasks, improve data accuracy, and support more efficient service delivery.
+                </p>
+                <p>
+                    According to foreign studies on logistics and delivery management, delivery management systems are designed to optimize the movement of products from businesses to customers through automated scheduling, route coordination, and transaction management. These systems improve operational efficiency by reducing manual processing, minimizing delivery errors, and providing accurate records for both business owners and customers.
+                </p>
+                <p>
+                    In the Philippines, local researchers have emphasized the importance of computerized management systems for small businesses, particularly in improving record management, transaction processing, and customer service. Studies involving local retail and service businesses show that replacing manual operations with web-based systems helps reduce paperwork, organize business information, and improve the overall efficiency of daily business activities.
+                </p>
+                <p>
+                    For this study, the researchers define a Water Delivery Management System as a web-based business management system developed specifically for a selected water refilling station in Minglanilla, Cebu. The system is intended to organize customer records, manage delivery transactions, record payments, monitor water container inventory, and provide a centralized platform for daily business operations. The researchers use this definition as the basis for the development and implementation of the project.
+                </p>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="fw-bold text-primary mb-3">Project Context</h5>
+                <p>
+                    This software project entitled <strong>"Water Delivery Management System"</strong> is a software development project that focuses on improving the daily operations of a selected water refilling station through computerization. The project addresses the challenges of managing customer information, delivery orders, payment records, and inventory using manual methods.
+                </p>
+                <p>
+                    The primary concern of the project is the inefficiency of manual record-keeping and transaction management. Manual processes consume time, increase the possibility of human error, and make it difficult to monitor deliveries and customer transactions accurately. The researchers aim to enhance these business activities through a centralized computerized management system.
+                </p>
+                <p>
+                    The respondents and stakeholders of this project include the owner and staff of the selected water refilling station, who provided information about their current operational processes and business needs. They serve as the primary beneficiaries of the project because the system is designed based on their existing workflow. Customers of the water refilling station also indirectly benefit from improved delivery management and faster transaction processing.
+                </p>
+                <p>
+                    The project was conducted during the <strong>2026 academic year</strong> as part of the <strong>Bachelor of Science in Information Technology thesis requirement at St. Cecilia's College – Cebu, Inc.</strong> The development process began with gathering business requirements, followed by planning, system design, development, testing, and evaluation before the completion of the project.
+                </p>
+                <p>
+                    The study was conducted and implemented in <strong>Minglanilla, Cebu</strong>, where the selected water refilling station operates. This location served as the source of business requirements and operational data used throughout the development of the project.
+                </p>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="fw-bold text-primary mb-3">Statement of the Problem</h5>
+                <p>
+                    Many water refilling stations continue to manage customer orders, delivery schedules, payment records, and inventory through manual recording methods. As the number of customers and delivery transactions increases, these manual processes become more difficult to manage and increase the possibility of inaccurate records, delayed deliveries, and inefficient monitoring of daily operations.
+                </p>
+                <p>
+                    This study seeks to determine whether the development of a computerized Water Delivery Management System can improve the management of delivery operations in a selected water refilling station in Minglanilla, Cebu.
+                </p>
+                <p><strong>Specifically, this study aims to answer the following questions:</strong></p>
+                <ol>
+                    <li>What are the current challenges encountered by the selected water refilling station in managing customer records, delivery schedules, payment transactions, and inventory?</li>
+                    <li>What system requirements and specifications are needed based on the operational needs of the stakeholders?</li>
+                    <li>How can a Water Delivery Management System improve the efficiency and organization of the selected water refilling station's daily operations?</li>
+                    <li>Does the developed system comply with the identified system requirements and specifications during testing and evaluation?</li>
+                </ol>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="fw-bold text-primary mb-3">Objectives of the Study</h5>
+                <p>
+                    This thesis project entitled "Water Delivery Management System" aims to develop and implement a computerized management system that will assist a selected water refilling station in managing customer information, delivery transactions, payment records, and inventory monitoring.
+                </p>
+                <p><strong>Specifically, this study aims to:</strong></p>
+                <ol>
+                    <li>Determine the feasibility of implementing a computerized Water Delivery Management System for a selected water refilling station in Minglanilla, Cebu.</li>
+                    <li>Identify and develop the system requirements and specifications based on the operational activities and needs of the stakeholders.</li>
+                    <li>Design and develop a Water Delivery Management System based on the identified requirements and specifications.</li>
+                    <li>Develop strategies for maintaining and managing the implemented software and its records.</li>
+                    <li>Verify that the developed system complies with the identified system requirements and specifications through testing and evaluation.</li>
+                </ol>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="fw-bold text-primary mb-3">Significance of the Study</h5>
+                <ul>
+                    <li><strong>Water Refilling Station Owner:</strong> The project provides a more organized way of monitoring customer transactions, deliveries, payments, and inventory. It helps improve decision-making through centralized business records.</li>
+                    <li><strong>Water Refilling Station Staff:</strong> The system reduces the time spent on manual recording of orders, payments, and inventory updates, making daily operations more efficient and organized.</li>
+                    <li><strong>Customers:</strong> Customers benefit from a more organized delivery process, improved transaction recording, and faster handling of delivery requests and payment records.</li>
+                    <li><strong>Researchers:</strong> The project allows the researchers to apply the knowledge and skills gained in software development, database management, and systems analysis while developing a practical business solution.</li>
+                    <li><strong>Future Researchers:</strong> This study may serve as a reference for future studies involving delivery management systems, inventory management, or computerized business management systems for small and medium-sized enterprises.</li>
+                </ul>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="fw-bold text-primary mb-3">Scope and Limitations</h5>
+                <p>
+                    This study is focused on the development and implementation of a Water Delivery Management System for a selected water refilling station in <strong>Minglanilla, Cebu</strong>. The study covers the business processes related to <strong>customer information management, order recording, delivery transaction management, payment recording, and inventory monitoring</strong>.
+                </p>
+                <div class="alert alert-secondary small">
+                    <strong>Defined System Boundaries:</strong> The project is limited to the operational needs of the selected water refilling station that participated in this study. It does not cover financial accounting, payroll processing, supplier management, online payment gateways, GPS-based delivery tracking, or mobile application development. The study also does not include delivery route optimization or services beyond the selected water refilling station's delivery operations.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Operational Definitions -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-spell-check text-primary me-2"></i> Operational Definition of Terms
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Customer</strong>
+                    <small class="text-muted">A person or establishment that purchases purified water and requests delivery services from the selected water refilling station.</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Delivery</strong>
+                    <small class="text-muted">The process of transporting ordered water containers from the water refilling station to the customer's specified location.</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Delivery Management</strong>
+                    <small class="text-muted">The process of recording, organizing, scheduling, and monitoring customer deliveries and their completion status.</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Inventory</strong>
+                    <small class="text-muted">The available stock of water containers, gallons, and other delivery-related items monitored by the water refilling station.</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Order</strong>
+                    <small class="text-muted">A customer's request for purified water containers to be delivered by the water refilling station.</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Payment Record</strong>
+                    <small class="text-muted">The documentation of customer payments for completed water delivery transactions.</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="text-primary d-block">Stakeholders</strong>
+                    <small class="text-muted">The owner, staff, and other individuals involved in the operation and use of the selected water refilling station's delivery services.</small>
+                </div>
+
+                <div>
+                    <strong class="text-primary d-block">Water Delivery Management System</strong>
+                    <small class="text-muted">A web-based information system developed for this study to assist a selected water refilling station in managing customer records, delivery transactions, payment records, and inventory through a centralized computerized platform.</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 fw-bold text-dark">
+                <i class="fa-solid fa-map-pin text-danger me-2"></i> Minglanilla, Cebu Coverage
+            </div>
+            <div class="card-body p-4">
+                <p class="small text-muted mb-2">
+                    Pre-configured with all 17 official barangays in Minglanilla, Cebu:
+                </p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-light text-dark border">Poblacion Ward I</span>
+                    <span class="badge bg-light text-dark border">Poblacion Ward II</span>
+                    <span class="badge bg-light text-dark border">Cadulawan</span>
+                    <span class="badge bg-light text-dark border">Calajo-an</span>
+                    <span class="badge bg-light text-dark border">Camp 7</span>
+                    <span class="badge bg-light text-dark border">Camp 8</span>
+                    <span class="badge bg-light text-dark border">Cuanos</span>
+                    <span class="badge bg-light text-dark border">Guindaruhan</span>
+                    <span class="badge bg-light text-dark border">Linao</span>
+                    <span class="badge bg-light text-dark border">Lipata</span>
+                    <span class="badge bg-light text-dark border">Manduang</span>
+                    <span class="badge bg-light text-dark border">Pakigne</span>
+                    <span class="badge bg-light text-dark border">Tubod</span>
+                    <span class="badge bg-light text-dark border">Tulay</span>
+                    <span class="badge bg-light text-dark border">Tungkil</span>
+                    <span class="badge bg-light text-dark border">Tungkop</span>
+                    <span class="badge bg-light text-dark border">Vito</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

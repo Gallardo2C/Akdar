@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics{% endblock %}
+{% block page_heading %}Business Reports & Operational Analytics{% endblock %}
+
+{% block content %}
+<!-- Date Range Presets & Filter Bar -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <!-- Quick Preset Buttons -->
+        <div class="d-flex flex-wrap gap-2 mb-3 pb-3 border-bottom">
+            <a href="{{ url_for('reports.index', preset='today') }}" class="btn btn-sm {% if preset == 'today' %}btn-primary{% else %}btn-light border{% endif %}">
+                <i class="fa-solid fa-calendar-day me-1"></i> Today's Sales
+            </a>
+            <a href="{{ url_for('reports.index', preset='week') }}" class="btn btn-sm {% if preset == 'week' %}btn-primary{% else %}btn-light border{% endif %}">
+                <i class="fa-solid fa-calendar-week me-1"></i> This Week
+            </a>
+            <a href="{{ url_for('reports.index', preset='month') }}" class="btn btn-sm {% if preset == 'month' %}btn-primary{% else %}btn-light border{% endif %}">
+                <i class="fa-solid fa-calendar me-1"></i> This Month
+            </a>
+            <a href="{{ url_for('reports.index', preset='year') }}" class="btn btn-sm {% if preset == 'year' %}btn-primary{% else %}btn-light border{% endif %}">
+                <i class="fa-solid fa-calendar-days me-1"></i> Annual Sales
+            </a>
+        </div>
+
+        <form method="GET" action="{{ url_for('reports.index') }}" class="row g-2 align-items-center">
+            <input type="hidden" name="preset" value="custom">
+            
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">From Date</label>
+                <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">To Date</label>
+                <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-sm btn-primary w-100">
+                    <i class="fa-solid fa-filter me-1"></i> Apply Filter
+                </button>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{{ url_for('reports.export_sales') }}" class="btn btn-sm btn-outline-success w-100">
+                    <i class="fa-solid fa-file-csv me-1"></i> Export Sales to CSV
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Summary Metrics -->
+<div class="row g-3 mb-4">
+    <!-- Total Sales Value -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card card-blueprint">
+            <div class="stat-icon stat-icon-emerald">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i>
+            </div>
+            <div>
+                <div class="stat-label">Total Sales Value</div>
+                <div class="stat-value text-success">{{ total_sales_value | php }}</div>
+                <small class="text-muted font-mono">{{ total_completed }} completed sales</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Walk-in POS Sales -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue">
+                <i class="fa-solid fa-store"></i>
+            </div>
+            <div>
+                <div class="stat-label">Walk-in POS Sales</div>
+                <div class="stat-value text-primary">{{ walkin_sales | php }}</div>
+                <small class="text-muted font-mono">{{ walkin_count }} in-store orders</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Sales -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <div>
+                <div class="stat-label">Delivery Sales</div>
+                <div class="stat-value text-dark">{{ delivery_sales | php }}</div>
+                <small class="text-muted font-mono">{{ delivery_count }} deliveries dispatched</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments Collected in Period -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <div class="stat-label">Cash & Digital Collected</div>
+                <div class="stat-value text-dark">{{ total_payments_collected | php }}</div>
+                <small class="text-muted font-mono">Total cash receipts in range</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Section: Best-Selling Products & Cashier Performance -->
+<div class="row g-4 mb-4">
+    <!-- Best-Selling Products Table -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 fw-bold text-dark d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa-solid fa-fire text-warning me-2"></i> Best-Selling Products
+                </div>
+                <span class="badge bg-light text-secondary border font-mono">Period Volume</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th class="text-center">Units Sold</th>
+                            <th class="text-end">Gross Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if best_selling_products %}
+                            {% for p in best_selling_products %}
+                            <tr>
+                                <td class="fw-semibold text-dark">{{ p.name }}</td>
+                                <td class="text-center font-mono fw-bold text-primary">{{ p.quantity }}</td>
+                                <td class="text-end font-mono fw-bold">{{ p.revenue | php }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">
+                                    No itemized sales recorded in this period.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cashier Performance Summary Table -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 fw-bold text-dark d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa-solid fa-cash-register text-primary me-2"></i> Cashier Transaction Summaries
+                </div>
+                <span class="badge bg-light text-secondary border font-mono">By Staff</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Cashier / Staff</th>
+                            <th class="text-center">Transactions</th>
+                            <th class="text-center">Walk-in / Delivery</th>
+                            <th class="text-end">Total Handled</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if cashier_summaries %}
+                            {% for c in cashier_summaries %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ c.cashier }}</div>
+                                </td>
+                                <td class="text-center font-mono fw-bold text-primary">{{ c.transactions }}</td>
+                                <td class="text-center font-mono small">
+                                    <span class="badge badge-walkin">{{ c.walkin }} POS</span>
+                                    <span class="badge badge-delivery">{{ c.delivery }} Del</span>
+                                </td>
+                                <td class="text-end font-mono fw-bold text-success">{{ c.sales | php }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    No cashier sales recorded in this period.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock & Current Inventory Health Table -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 fw-bold text-dark d-flex align-items-center justify-content-between">
+        <div>
+            <i class="fa-solid fa-boxes-stacked text-primary me-2"></i> Inventory Health & Supply Status
+        </div>
+        <a href="{{ url_for('inventory.index') }}" class="btn btn-sm btn-outline-primary">
+            Manage Inventory &rarr;
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Item Code</th>
+                    <th>Inventory Item</th>
+                    <th>Category</th>
+                    <th>Current Stock</th>
+                    <th>Reorder Level</th>
+                    <th>Health Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventory_items %}
+                <tr>
+                    <td class="font-mono fw-bold text-primary">{{ item.item_code }}</td>
+                    <td class="fw-semibold text-dark">{{ item.item_name }}</td>
+                    <td>
+                        <span class="badge bg-light text-secondary border">{{ item.category }}</span>
+                    </td>
+                    <td class="font-mono fw-bold fs-6">
+                        {% if item.category == 'Container' %}
+                            {{ item.filled_stock }} filled <small class="text-muted">({{ item.empty_stock }} empty)</small>
+                        {% else %}
+                            {{ item.quantity_on_hand }} {{ item.unit }}
+                        {% endif %}
+                    </td>
+                    <td class="font-mono text-muted">{{ item.reorder_level }} {{ item.unit }}</td>
+                    <td>
+                        {% if item.is_low_stock %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-mono">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i> LOW STOCK
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle font-mono">
+                                <i class="fa-solid fa-circle-check me-1"></i> Optimal
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Completed Transactions List for this Period -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 fw-bold text-dark d-flex align-items-center justify-content-between">
+        <div>
+            <i class="fa-solid fa-file-invoice text-primary me-2"></i> Completed Transactions in Selected Range
+        </div>
+        <span class="badge bg-light text-dark border font-mono">{{ completed_orders | length }} records</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Ref No.</th>
+                    <th>Channel</th>
+                    <th>Customer</th>
+                    <th>Date & Time</th>
+                    <th>Items Purchased</th>
+                    <th>Total (PHP)</th>
+                    <th>Cashier</th>
+                    <th class="text-end">Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if completed_orders %}
+                    {% for o in completed_orders %}
+                    <tr>
+                        <td class="font-mono fw-bold text-primary">
+                            <a href="{{ url_for('orders.view', id=o.id) }}" class="text-decoration-none">
+                                {{ o.order_number }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if o.order_type == 'Walk-in' %}
+                                <span class="badge badge-walkin font-mono">Walk-in POS</span>
+                            {% else %}
+                                <span class="badge badge-delivery font-mono">Delivery</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ o.display_customer_name }}</td>
+                        <td class="font-mono small">{{ o.created_at | format_dt('%b %d, %Y %I:%M %p') }}</td>
+                        <td>
+                            <small class="text-muted">
+                                {% for item in o.items %}
+                                    {{ item.product_name }} &times; {{ item.quantity }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </small>
+                        </td>
+                        <td class="font-mono fw-bold">{{ o.total_amount | php }}</td>
+                        <td class="font-mono small text-muted">{{ o.creator.full_name if o.creator else 'System' }}</td>
+                        <td class="text-end">
+                            <a href="{% if o.order_type == 'Walk-in' %}{{ url_for('pos.receipt', id=o.id) }}{% else %}{{ url_for('orders.receipt', id=o.id) }}{% endif %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Print Receipt">
+                                <i class="fa-solid fa-print"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No completed transactions found in this date range.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
